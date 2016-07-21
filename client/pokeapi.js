@@ -1,13 +1,20 @@
 
+//
+// var data;
+//
+// $(document).ready(function(){
+//
+//   $.ajax({
+//     method: 'GET',
+//     url: api_url,
+//     headers: headers
+//   });
+//
+// });
 
-var data;
-
-$(document).ready(function(){
-
+function testPokemon(){
   $.ajax({
     method: 'GET',
-    url: api_url,
-    headers: headers
+    url: 'api/pokemon'
   });
-
-});
+}
