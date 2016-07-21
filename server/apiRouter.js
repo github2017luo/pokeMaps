@@ -1,5 +1,5 @@
+var pokeController = require('./pokeController.js');
+
 module.exports = function(router){
-  router.get('/pokemon', function(req, res){
-    res.send('ok');
-  });
+  router.get('/pokemon', pokeController.testPokemon);
 }
