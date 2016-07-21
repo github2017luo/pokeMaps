@@ -3,6 +3,7 @@ var http = require('http');
 var https = require('https');
 var fs = require('fs');
 var util = require('util');
+var request = require('request');
 
 var api_url = 'https://pgorelease.nianticlabs.com/plfe/rpc';
 var login_url = 'https://sso.pokemon.com/sso/login?service=https%3A%2F%2Fsso.pokemon.com%2Fsso%2Foauth2.0%2FcallbackAuthorize';
@@ -12,34 +13,19 @@ var headers = {
   'User-Agent': 'Niantic App'
 }
 
-api.testPokemon = function(req, res){
-  https.get(api_url, (response) => {
-    console.log(`Got response: ${response.statusCode}`);
-    console.log('and the text: ', response);
-    //res.resume();
-  }).on('error', (e) => {
-    console.log(`Got error: ${e.message}`);
-  });
-}
+
 
 api.login = function(req, res){
-  https.request({
-    method: 'GET',
-    hostname: 'sso.pokemon.com',
-    headers: headers,
-    path: '/sso/login?service=https%3A%2F%2Fsso.pokemon.com%2Fsso%2Foauth2.0%2FcallbackAuthorize'
-  }, (response)=>{
-    var arr = Object.keys(response);
+  request(login_url, (err, response, body)=>{
+    if(err){
+      console.log(err);
+    }
+    body = JSON.parse(body);
+    console.log(body);
+      console.log(body.lt);
+      console.log(body.execution);
 
-    console.log('we got back this', arr);
-    fs.writeFile('response.txt', util.inspect(response), 'utf8', function(){
-      console.log('done writing');
-    });
-  }).on('error', (e) => {
-    console.log(`Got error: ${e.message}`);
-  }).on('end', ()=>{
-    console.log("request ended");
-  }).end();
+  });
 }
 
 
