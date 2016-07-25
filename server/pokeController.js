@@ -7,6 +7,19 @@ var request = require('request');
 var url = require('url');
 var player = require('./player.js');
 
+var ProtoBuf = require('protobufjs');
+
+var builder = ProtoBuf.loadProtoFile(__dirname + '/pokemon.proto');
+
+
+var pokemonProto = builder.build();
+
+var RequestEnvelop = pokemonProto.RequestEnvelop;
+var ResponseEnvelop = pokemonProto.ResponseEnvelop;
+
+
+
+
 var j = request.jar();
 request = request.defaults({ jar: j });
 
@@ -94,10 +107,10 @@ function getToken(cb){
 }
 
 function getEndpoint(token){
-  var authObj = {
-    provider: 'ptc',
-    token: token
-  }
+  var authObj = new RequestEnvelop.AuthInfo({
+      provider: 'ptc',
+      token: new RequestEnvelop.AuthInfo.JWT(token, 59)
+  });
   var reqEnvs = [new RequestEnvelop.Requests(2), new RequestEnvelop.Requests(126), new RequestEnvelop.Requests(4), new RequestEnvelop.Requests(129), new RequestEnvelop.Requests(5)];
 
   var reqDump = new RequestEnvelop({
@@ -124,11 +137,28 @@ function getEndpoint(token){
 
   request.post(opt, (err, response, body)=>{
     console.log("response code", response.statusMessage);
+    if (response === undefined || body === undefined) {
+        console.log('[something wrong with get api');
+    }
 
-    var decodedResponse = ResponseEnvelop.decode(body);
-    var api_endpoint = 'https://' + decodedResponse.api_url + '/rpc';
-    console.log('api endpoint', api_endpoint);
-    player.api = api_endpoint;
+    try {
+        var decodedResponse = ResponseEnvelop.decode(body);
+    } catch (e) {
+        if (e.decoded) {
+            // Truncated
+            console.warn(e);
+            decodedResponse = e.decoded; // Decoded message with missing required fields
+        }
+    }
+
+    if (decodedResponse) {
+      var api_endpoint = 'https://' + decodedResponse.api_url + '/rpc';
+      console.log('api endpoint', api_endpoint);
+      player.api = api_endpoint;
+    } else {
+        api_req(api_endpoint, access_token, req, callback);
+    }
+
   });
 
 }
